@@ -1,4 +1,11 @@
 package view.form;
 
-public class DepartmentsPanelForm {
+import service.HospitalManagement;
+
+import javax.swing.*;
+
+public class DepartmentsPanelForm extends JPanel {
+
+    public DepartmentsPanelForm(HospitalManagement manager) {
+    }
 }

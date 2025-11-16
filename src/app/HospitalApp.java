@@ -1,6 +1,7 @@
 package app;
 
 import service.HospitalManagement;
+import view.form.DepartmentsPanelForm; // Необхідний імпорт
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -10,6 +11,7 @@ public class HospitalApp extends JFrame {
 
     private HospitalManagement manager;
     private JTabbedPane tabbedPane;
+    private DepartmentsPanelForm departmentsPanel; // <<< ВИПРАВЛЕННЯ
 
     public HospitalApp() {
         super("Система Управління Лікарнею");
@@ -24,7 +26,13 @@ public class HospitalApp extends JFrame {
         tabbedPane = new JTabbedPane();
 
         // Додавання вкладок
-        tabbedPane.addTab("Відділки", createDepartmentsPanel());
+
+        tabbedPane = new JTabbedPane();
+
+        // РЯДОК 28, де виникає помилка: тут змінна використовується, але не оголошена
+        departmentsPanel = new DepartmentsPanelForm(manager);
+        tabbedPane.addTab("Відділки", departmentsPanel);
+
         tabbedPane.addTab("Лікарі", createDoctorsPanel());
         tabbedPane.addTab("Пацієнти", createPatientsPanel());
         tabbedPane.addTab("Звіти", createReportsPanel());
@@ -45,15 +53,6 @@ public class HospitalApp extends JFrame {
     /**
      * Методи-заглушки для створення вмісту вкладок
      */
-    private JPanel createDepartmentsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel("Панель Відділків (Тут буде JTable)", SwingConstants.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-
-        // TODO: Додати JTable та кнопки "Додати", "Редагувати"
-
-        return panel;
-    }
 
     private JPanel createDoctorsPanel() {
         JPanel panel = new JPanel(new BorderLayout());

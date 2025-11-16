@@ -40,14 +40,15 @@ public class DepartmentTableModel extends AbstractTableModel {
         Department dept = departments.get(rowIndex);
 
         // Визначаємо, які дані повернути для конкретної колонки
-        switch (columnIndex) {
-            case 0: return dept.getName();
-            case 1: return dept.getMaxCapacity();
-            case 2: return dept.getCurrentOccupancy();
-            case 3:
+        return switch (columnIndex) {
+            case 0 -> dept.getName();
+            case 1 -> dept.getMaxCapacity();
+            case 2 -> dept.getCurrentOccupancy();
+            case 3 -> {
                 double occupancy = (double) dept.getCurrentOccupancy() / dept.getMaxCapacity();
-                return String.format("%.1f%%", occupancy * 100);
-            default: return null;
-        }
+                yield String.format("%.1f%%", occupancy * 100);
+            }
+            default -> null;
+        };
     }
 }
