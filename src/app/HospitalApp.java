@@ -2,6 +2,8 @@ package app;
 
 import service.HospitalManagement;
 import view.form.DepartmentsPanelForm;
+import view.form.PatientPanelForm;
+import view.form.DoctorPanelForm;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -19,13 +21,15 @@ public class HospitalApp extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        tabbedPane = new JTabbedPane();
-
         DepartmentsPanelForm departmentsPanel = new DepartmentsPanelForm(manager);
         tabbedPane.addTab("Відділки", departmentsPanel);
 
-        tabbedPane.addTab("Лікарі", createDoctorsPanel());
-        tabbedPane.addTab("Пацієнти", createPatientsPanel());
+        DoctorPanelForm doctorPanelForm = new DoctorPanelForm(manager);
+        tabbedPane.addTab("Лікарі", doctorPanelForm);
+
+        PatientPanelForm patientPanel = new PatientPanelForm(manager);
+        tabbedPane.addTab("Пацієнти", patientPanel);
+
         tabbedPane.addTab("Звіти", createReportsPanel());
 
         add(tabbedPane);
@@ -36,23 +40,6 @@ public class HospitalApp extends JFrame {
                 System.out.println("Збереження даних...");
             }
         });
-    }
-
-    /**
-     * Методи-заглушки для створення вмісту вкладок
-     */
-    private JPanel createDoctorsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel("Панель Лікарів (Тут буде JTable)", SwingConstants.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel createPatientsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel("Панель Пацієнтів (Тут буде JTable та кнопки Прийняти/Виписати)", SwingConstants.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
     }
 
     private JPanel createReportsPanel() {

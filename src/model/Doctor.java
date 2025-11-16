@@ -31,6 +31,22 @@ public class Doctor {
         return lastName + " " + firstName.charAt(0) + "." + patronymic.charAt(0) + ".";
     }
 
+    public int getBirthYear() {
+        return birthYear;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public String getSpecialization() {
+        return specialization;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
     public List<Department> getAffiliatedDepartments() {
         return affiliatedDepartments;
     }
