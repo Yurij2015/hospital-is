@@ -14,10 +14,13 @@ public class DepartmentTableModel extends AbstractTableModel {
         this.departments = departments;
     }
 
-    // Метод для оновлення даних, викликається після змін у service.HospitalManagement
+    public List<Department> getDepartments() {
+        return departments;
+    }
+
     public void setData(List<Department> newDepartments) {
         this.departments = newDepartments;
-        fireTableDataChanged(); // Повідомляє JTable про необхідність перемалюватись
+        fireTableDataChanged();
     }
 
     @Override
@@ -39,7 +42,6 @@ public class DepartmentTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         Department dept = departments.get(rowIndex);
 
-        // Визначаємо, які дані повернути для конкретної колонки
         return switch (columnIndex) {
             case 0 -> dept.getName();
             case 1 -> dept.getMaxCapacity();

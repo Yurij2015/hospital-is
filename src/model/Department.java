@@ -6,8 +6,7 @@ import java.util.List;
 public class Department {
     private String name;
     private int maxCapacity;
-    // Пацієнти, що зараз перебувають у цьому відділку
-    private List<Patient> currentPatients;
+    private final List<Patient> currentPatients;
 
     public Department(String name, int maxCapacity) {
         this.name = name;
@@ -15,25 +14,13 @@ public class Department {
         this.currentPatients = new ArrayList<>();
     }
 
-    // --- Getters and Setters ---
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public int getMaxCapacity() { return maxCapacity; }
+    public void setMaxCapacity(int maxCapacity) { this.maxCapacity = maxCapacity; }
+    public int getCurrentOccupancy() { return currentPatients.size(); }
+    public boolean hasSpace() { return currentPatients.size() < maxCapacity; }
 
-    public int getMaxCapacity() {
-        return maxCapacity;
-    }
-
-    public int getCurrentOccupancy() {
-        return currentPatients.size();
-    }
-
-    // Перевірка, чи є місце
-    public boolean hasSpace() {
-        return currentPatients.size() < maxCapacity;
-    }
-
-    // Метод для додавання/видалення пацієнтів
     public void addPatient(Patient patient) {
         if (hasSpace()) {
             currentPatients.add(patient);
@@ -42,12 +29,8 @@ public class Department {
         }
     }
 
-    public void removePatient(Patient patient) {
-        currentPatients.remove(patient);
-    }
+    public void removePatient(Patient patient) { currentPatients.remove(patient); }
 
     @Override
-    public String toString() {
-        return name + " (" + getCurrentOccupancy() + "/" + maxCapacity + ")";
-    }
+    public String toString() { return name + " (" + getCurrentOccupancy() + "/" + maxCapacity + ")"; }
 }

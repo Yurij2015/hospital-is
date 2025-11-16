@@ -1,22 +1,21 @@
 package service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import model.Department;
 import model.Doctor;
 import model.Patient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HospitalManagement {
-    private List<Department> departments;
-    private List<Doctor> doctors;
-    private List<Patient> patients;
+    private final List<Department> departments;
+    private final List<Doctor> doctors;
+    private final List<Patient> patients;
 
     public HospitalManagement() {
         this.departments = new ArrayList<>();
         this.doctors = new ArrayList<>();
         this.patients = new ArrayList<>();
-        // Тут можна додати тестові дані для початку
         addInitialData();
     }
 
@@ -30,27 +29,40 @@ public class HospitalManagement {
                 "Завідувач", "Кардіолог", "050-111-22-33");
         ivanov.addDepartment(cardio);
         doctors.add(ivanov);
-
-        // ... додавання інших тестових даних
     }
 
-    // --- Методи для керування даними ---
     public void addDepartment(Department dept) { departments.add(dept); }
     public List<Department> getDepartments() { return departments; }
 
-    public void addDoctor(Doctor doctor) { doctors.add(doctor); }
-    public List<Doctor> getDoctors() { return doctors; }
+    public void updateDepartment(Department dept, String newName, int newCapacity) {
+        if (newCapacity < dept.getCurrentOccupancy()) {
+            throw new IllegalArgumentException("Нова місткість (" + newCapacity +
+                    ") менша за поточну зайнятість (" + dept.getCurrentOccupancy() + ").");
+        }
+        dept.setName(newName); // Потребує set-метод у Department
+        dept.setMaxCapacity(newCapacity); // Потребує set-метод у Department
+    }
 
+    public void removeDepartment(Department dept) {
+        if (dept.getCurrentOccupancy() > 0) {
+            throw new IllegalStateException("Неможливо видалити відділок '" + dept.getName() +
+                    "', оскільки в ньому є " + dept.getCurrentOccupancy() + " пацієнтів.");
+        }
+        departments.remove(dept);
+    }
+
+    // Методи для пацієнтів
     public void admitPatient(Patient patient) {
         if (patient.getDepartment().hasSpace()) {
             patients.add(patient);
             patient.getDepartment().addPatient(patient);
         } else {
-            // Обробка помилки або виключення
             System.err.println("Помилка: Відділок заповнений.");
         }
     }
     public List<Patient> getPatients() { return patients; }
 
-    // ... методи для виписки пацієнта, пошуку, редагування
+    // Методи для лікарів
+    public void addDoctor(Doctor doctor) { doctors.add(doctor); }
+    public List<Doctor> getDoctors() { return doctors; }
 }

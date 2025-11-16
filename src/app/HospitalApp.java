@@ -1,7 +1,7 @@
 package app;
 
 import service.HospitalManagement;
-import view.form.DepartmentsPanelForm; // Необхідний імпорт
+import view.form.DepartmentsPanelForm;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -9,42 +9,30 @@ import java.awt.event.WindowEvent;
 
 public class HospitalApp extends JFrame {
 
-    private HospitalManagement manager;
-    private JTabbedPane tabbedPane;
-    private DepartmentsPanelForm departmentsPanel; // <<< ВИПРАВЛЕННЯ
-
     public HospitalApp() {
         super("Система Управління Лікарнею");
-        manager = new HospitalManagement(); // Ініціалізація контролера
+        HospitalManagement manager = new HospitalManagement();
 
-        // Налаштування основного вікна
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 600); // Збільшений розмір для таблиць
-        setLocationRelativeTo(null); // Вікно по центру екрана
+        setSize(1000, 600);
+        setLocationRelativeTo(null);
 
-        // Створення панелі з вкладками
-        tabbedPane = new JTabbedPane();
-
-        // Додавання вкладок
+        JTabbedPane tabbedPane = new JTabbedPane();
 
         tabbedPane = new JTabbedPane();
 
-        // РЯДОК 28, де виникає помилка: тут змінна використовується, але не оголошена
-        departmentsPanel = new DepartmentsPanelForm(manager);
+        DepartmentsPanelForm departmentsPanel = new DepartmentsPanelForm(manager);
         tabbedPane.addTab("Відділки", departmentsPanel);
 
         tabbedPane.addTab("Лікарі", createDoctorsPanel());
         tabbedPane.addTab("Пацієнти", createPatientsPanel());
         tabbedPane.addTab("Звіти", createReportsPanel());
 
-        // Додавання панелі вкладок до вікна
         add(tabbedPane);
 
-        // Додаємо обробник для збереження даних при закритті (для майбутньої серіалізації)
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                // Тут має бути виклик методу manager.saveData()
                 System.out.println("Збереження даних...");
             }
         });
@@ -53,7 +41,6 @@ public class HospitalApp extends JFrame {
     /**
      * Методи-заглушки для створення вмісту вкладок
      */
-
     private JPanel createDoctorsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel label = new JLabel("Панель Лікарів (Тут буде JTable)", SwingConstants.CENTER);
@@ -76,7 +63,6 @@ public class HospitalApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Виконання коду Swing в Event Dispatch Thread (рекомендовано)
         SwingUtilities.invokeLater(() -> {
             new HospitalApp().setVisible(true);
         });
