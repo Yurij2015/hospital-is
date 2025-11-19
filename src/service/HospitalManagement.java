@@ -6,6 +6,7 @@ import model.Patient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 public class HospitalManagement {
     private final List<Department> departments;
@@ -60,9 +61,61 @@ public class HospitalManagement {
             System.err.println("Помилка: Відділок заповнений.");
         }
     }
+
     public List<Patient> getPatients() { return patients; }
+
+    // Новий метод: виписка пацієнта
+    public void dischargePatient(Patient patient) {
+        if (patient == null) return;
+        if (patient.isDischarged()) {
+            throw new IllegalStateException("Пацієнт вже виписаний.");
+        }
+        // Встановлюємо дату виписки та прибираємо з відділку
+        patient.setDischargeDate(LocalDate.now());
+        Department dept = patient.getDepartment();
+        if (dept != null) {
+            dept.removePatient(patient);
+        }
+    }
+
+    // Новий метод: пошук пацієнтів за рядком (ПІБ або діагноз)
+    public List<Patient> searchPatients(String query) {
+        List<Patient> result = new ArrayList<>();
+        if (query == null || query.trim().isEmpty()) {
+            result.addAll(patients);
+            return result;
+        }
+        String q = query.toLowerCase();
+        for (Patient p : patients) {
+            if (p.getFullName().toLowerCase().contains(q) || p.getDiagnosis().toLowerCase().contains(q)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
 
     // Методи для лікарів
     public void addDoctor(Doctor doctor) { doctors.add(doctor); }
     public List<Doctor> getDoctors() { return doctors; }
+
+    // Новий метод: оновлення даних лікаря
+    public void updateDoctor(Doctor doctor, String newPosition, String newSpecialization, String newPhone) {
+        if (doctor == null) return;
+        doctor.setPosition(newPosition);
+        doctor.setSpecialization(newSpecialization);
+        doctor.setPhoneNumber(newPhone);
+    }
+
+    // Новий метод: видалення лікаря (перевіряємо, чи немає закріплених пацієнтів)
+    public void removeDoctor(Doctor doctor) {
+        if (doctor == null) return;
+        // Перевірка: чи є пацієнти, які мають цього лікаря
+        for (Patient p : patients) {
+            if (p.getAttendingDoctor() == doctor) {
+                throw new IllegalStateException("Не можна видалити лікаря, поки є пацієнти, закріплені за ним.");
+            }
+        }
+        // Якщо все ок — видаляємо
+        doctors.remove(doctor);
+    }
 }

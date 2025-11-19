@@ -8,9 +8,9 @@ public class Doctor {
     private final String firstName;
     private final String patronymic;
     private final int birthYear;
-    private final String position;
-    private final String specialization;
-    private final String phoneNumber;
+    private String position;
+    private String specialization;
+    private String phoneNumber;
     // Відділки, за якими закріплений лікар
     private final List<Department> affiliatedDepartments;
 
@@ -39,12 +39,24 @@ public class Doctor {
         return position;
     }
 
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
     public String getSpecialization() {
         return specialization;
     }
 
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
+    }
+
     public String getPhoneNumber() {
         return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public List<Department> getAffiliatedDepartments() {
@@ -55,6 +67,10 @@ public class Doctor {
         if (!affiliatedDepartments.contains(department)) {
             affiliatedDepartments.add(department);
         }
+    }
+
+    public void removeDepartment(Department department) {
+        affiliatedDepartments.remove(department);
     }
 
     // ... інші геттери та сеттери (для року народження, посади, фаху тощо)
