@@ -28,7 +28,15 @@ public class Doctor {
 
     // --- Getters and Setters ---
     public String getFullName() {
-        return lastName + " " + firstName.charAt(0) + "." + patronymic.charAt(0) + ".";
+        StringBuilder sb = new StringBuilder();
+        sb.append(lastName != null ? lastName : "");
+        if (firstName != null && !firstName.isEmpty()) {
+            sb.append(' ').append(firstName.charAt(0)).append('.');
+        }
+        if (patronymic != null && !patronymic.isEmpty()) {
+            sb.append(patronymic.charAt(0)).append('.');
+        }
+        return sb.toString();
     }
 
     public int getBirthYear() {

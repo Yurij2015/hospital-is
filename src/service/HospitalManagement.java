@@ -7,17 +7,42 @@ import model.Patient;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
+import java.sql.SQLException;
 
 public class HospitalManagement {
     private final List<Department> departments;
     private final List<Doctor> doctors;
     private final List<Patient> patients;
 
+    // Database helper (optional)
+    private Database db;
+
     public HospitalManagement() {
         this.departments = new ArrayList<>();
         this.doctors = new ArrayList<>();
         this.patients = new ArrayList<>();
-        addInitialData();
+
+        // try to initialize DB and load saved data; if not present, populate demo data and save it
+        try {
+            db = new Database();
+            if (db.hasAnyData()) {
+                // load from DB
+                List<Department> loadedDepts = db.loadDepartments();
+                departments.addAll(loadedDepts);
+                List<Doctor> loadedDocs = db.loadDoctors(departments);
+                doctors.addAll(loadedDocs);
+                List<Patient> loadedPats = db.loadPatients(departments, doctors);
+                patients.addAll(loadedPats);
+            } else {
+                addInitialData();
+                // persist initial data
+                saveAllToDatabase();
+            }
+        } catch (SQLException ex) {
+            // If DB initialization fails, fallback to in-memory demo data
+            System.err.println("Warning: could not initialize database, running in-memory only: " + ex.getMessage());
+            addInitialData();
+        }
     }
 
     private void addInitialData() {
@@ -93,7 +118,24 @@ public class HospitalManagement {
         dischargePatient(discharged);
     }
 
-    public void addDepartment(Department dept) { departments.add(dept); }
+    // Persist initial demo data to DB (if db is available)
+    private void saveAllToDatabase() {
+        if (db == null) return;
+        try {
+            for (Department d : departments) db.saveDepartment(d);
+            for (Doctor d : doctors) db.saveDoctor(d);
+            for (Patient p : patients) db.savePatient(p);
+        } catch (SQLException ex) {
+            System.err.println("Failed to save initial data to DB: " + ex.getMessage());
+        }
+    }
+
+    public void addDepartment(Department dept) {
+        departments.add(dept);
+        if (db != null) {
+            try { db.saveDepartment(dept); } catch (SQLException ex) { System.err.println("DB save dept failed: " + ex.getMessage()); }
+        }
+    }
     public List<Department> getDepartments() { return departments; }
 
     public void updateDepartment(Department dept, String newName, int newCapacity) {
@@ -103,6 +145,9 @@ public class HospitalManagement {
         }
         dept.setName(newName); // Потребує set-метод у Department
         dept.setMaxCapacity(newCapacity); // Потребує set-метод у Department
+        if (db != null) {
+            try { db.saveDepartment(dept); } catch (SQLException ex) { System.err.println("DB update dept failed: " + ex.getMessage()); }
+        }
     }
 
     public void removeDepartment(Department dept) {
@@ -111,6 +156,7 @@ public class HospitalManagement {
                     "', оскільки в ньому є " + dept.getCurrentOccupancy() + " пацієнтів.");
         }
         departments.remove(dept);
+        // Note: DB delete not implemented; could be added if desired
     }
 
     // Методи для пацієнтів
@@ -118,6 +164,9 @@ public class HospitalManagement {
         if (patient.getDepartment().hasSpace()) {
             patients.add(patient);
             patient.getDepartment().addPatient(patient);
+            if (db != null) {
+                try { db.savePatient(patient); } catch (SQLException ex) { System.err.println("DB save patient failed: " + ex.getMessage()); }
+            }
         } else {
             System.err.println("Помилка: Відділок заповнений.");
         }
@@ -136,6 +185,9 @@ public class HospitalManagement {
         Department dept = patient.getDepartment();
         if (dept != null) {
             dept.removePatient(patient);
+        }
+        if (db != null) {
+            try { db.updatePatientDischarge(patient); } catch (SQLException ex) { System.err.println("DB update discharge failed: " + ex.getMessage()); }
         }
     }
 
@@ -156,7 +208,10 @@ public class HospitalManagement {
     }
 
     // Методи для лікарів
-    public void addDoctor(Doctor doctor) { doctors.add(doctor); }
+    public void addDoctor(Doctor doctor) {
+        doctors.add(doctor);
+        if (db != null) { try { db.saveDoctor(doctor); } catch (SQLException ex) { System.err.println("DB save doctor failed: " + ex.getMessage()); } }
+    }
     public List<Doctor> getDoctors() { return doctors; }
 
     // Новий метод: оновлення даних лікаря
@@ -165,6 +220,7 @@ public class HospitalManagement {
         doctor.setPosition(newPosition);
         doctor.setSpecialization(newSpecialization);
         doctor.setPhoneNumber(newPhone);
+        if (db != null) { try { db.saveDoctor(doctor); } catch (SQLException ex) { System.err.println("DB update doctor failed: " + ex.getMessage()); } }
     }
 
     // Новий метод: видалення лікаря (перевіряємо, чи немає закріплених пацієнтів)
@@ -178,5 +234,6 @@ public class HospitalManagement {
         }
         // Якщо все ок — видаляємо
         doctors.remove(doctor);
+        // Note: DB delete not implemented here
     }
 }
