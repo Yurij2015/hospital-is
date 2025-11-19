@@ -3,12 +3,11 @@ package model;
 import java.time.LocalDate;
 
 public class Patient {
-    private String lastName;
-    private String firstName;
-    private String patronymic;
-    private int birthYear;
-    private String diagnosis;
-    private LocalDate admissionDate;
+    private final String lastName;
+    private final String firstName;
+    private final String patronymic;
+    private final String diagnosis;
+    private final LocalDate admissionDate;
     private Department department;
     private Doctor attendingDoctor;
     private LocalDate dischargeDate; // Null, якщо пацієнт ще не виписаний
@@ -18,7 +17,6 @@ public class Patient {
         this.lastName = lastName;
         this.firstName = firstName;
         this.patronymic = patronymic;
-        this.birthYear = birthYear;
         this.diagnosis = diagnosis;
         this.admissionDate = LocalDate.now(); // Дата прийому - сьогодні
         this.department = department;

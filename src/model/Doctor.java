@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Doctor {
-    private String lastName;
-    private String firstName;
-    private String patronymic;
-    private int birthYear;
-    private String position;
-    private String specialization;
-    private String phoneNumber;
+    private final String lastName;
+    private final String firstName;
+    private final String patronymic;
+    private final int birthYear;
+    private final String position;
+    private final String specialization;
+    private final String phoneNumber;
     // Відділки, за якими закріплений лікар
-    private List<Department> affiliatedDepartments;
+    private final List<Department> affiliatedDepartments;
 
     public Doctor(String lastName, String firstName, String patronymic, int birthYear,
                   String position, String specialization, String phoneNumber) {
