@@ -15,19 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Simple SQLite persistence helper using sqlite-jdbc.
- * Stores departments, doctors and patients in a local file `hospital.db`.
- * This implementation uses natural keys (names) to link records and is
- * intentionally lightweight for demo purposes.
- */
 public class Database implements AutoCloseable {
     private static final String DB_URL = "jdbc:sqlite:hospital.db";
     private final Connection conn;
 
     public Database() throws SQLException {
-        // If an existing hospital.db file exists but is not a valid SQLite file,
-        // move it aside and create a fresh database so the app can continue.
         Path dbPath = Path.of("hospital.db");
         if (Files.exists(dbPath)) {
             boolean valid = false;
@@ -52,33 +44,27 @@ public class Database implements AutoCloseable {
             }
         }
 
-        // Try connecting. If the driver reports SQLITE_NOTADB, attempt to move file and retry once.
         Connection tmpConn = null;
-        // Ensure the SQLite JDBC driver is loaded (some environments need explicit load)
         try {
             Class.forName("org.sqlite.JDBC");
             try {
-                // Try to create and register driver instance to ensure it's available to DriverManager
                 Class<?> drvClass = Class.forName("org.sqlite.JDBC");
                 java.sql.Driver drv = (java.sql.Driver) drvClass.getDeclaredConstructor().newInstance();
                 try {
                     DriverManager.registerDriver(drv);
                 } catch (SQLException ignore) {
-                    // driver may already be registered
                 }
             } catch (ReflectiveOperationException roe) {
                 System.err.println("Could not instantiate SQLite driver class: " + roe.getMessage());
             }
         } catch (ClassNotFoundException cnfe) {
             System.err.println("SQLite JDBC driver class not found: " + cnfe.getMessage());
-            // proceed; DriverManager will fail and be handled below
         }
         try {
             tmpConn = DriverManager.getConnection(DB_URL);
         } catch (SQLException ex) {
             String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
             if (msg.contains("file is not a database") || msg.contains("not a database") || msg.contains("sqlite_notadb")) {
-                // move aside and retry
                 try {
                     Path dbPath2 = dbPath;
                     if (Files.exists(dbPath2)) {
@@ -89,7 +75,6 @@ public class Database implements AutoCloseable {
                 } catch (IOException io) {
                     System.err.println("Failed to move invalid hospital.db: " + io.getMessage());
                 }
-                // retry
                 tmpConn = DriverManager.getConnection(DB_URL);
             } else {
                 throw ex;
@@ -203,7 +188,6 @@ public class Database implements AutoCloseable {
 
                 Doctor doc = null;
                 for (Doctor d : doctors) if (d.getFullName().toLowerCase().startsWith(docLast.toLowerCase())) { doc = d; break; }
-                // create patient; admission date is set to now by constructor (historic date not kept)
                 Patient p = new Patient(ln, fn, pat, 0, diag, dept, doc);
                 if (dis != null && !dis.isEmpty()) {
                     try {
@@ -228,7 +212,6 @@ public class Database implements AutoCloseable {
     public void saveDoctor(Doctor d) throws SQLException {
         String sql = "INSERT OR REPLACE INTO doctors(lastName, firstName, patronymic, birthYear, position, specialization, phone, primary_dept) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            // store fullName in lastName (demo purpose); first/patronymic left blank
             String full = d.getFullName();
             ps.setString(1, full);
             ps.setString(2, "");
@@ -246,7 +229,7 @@ public class Database implements AutoCloseable {
     public void savePatient(Patient p) throws SQLException {
         String sql = "INSERT INTO patients(lastName, firstName, patronymic, diagnosis, admission_date, discharge_date, dept_name, doctor_last, doctor_first) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, p.getFullName().split(" ")[0]); // fallback: using getFullName's first token as last name
+            ps.setString(1, p.getFullName().split(" ")[0]);
             ps.setString(2, "");
             ps.setString(3, "");
             ps.setString(4, p.getDiagnosis());

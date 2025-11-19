@@ -10,7 +10,7 @@ public class Patient {
     private final LocalDate admissionDate;
     private Department department;
     private Doctor attendingDoctor;
-    private LocalDate dischargeDate; // Null, якщо пацієнт ще не виписаний
+    private LocalDate dischargeDate;
 
     public Patient(String lastName, String firstName, String patronymic, int birthYear,
                    String diagnosis, Department department, Doctor attendingDoctor) {
@@ -18,26 +18,30 @@ public class Patient {
         this.firstName = firstName;
         this.patronymic = patronymic;
         this.diagnosis = diagnosis;
-        this.admissionDate = LocalDate.now(); // Дата прийому - сьогодні
+        this.admissionDate = LocalDate.now();
         this.department = department;
         this.attendingDoctor = attendingDoctor;
         this.dischargeDate = null;
     }
 
-    // --- Getters and Setters ---
-
-    // Геттер, необхідний для service.HospitalManagement (для перевірки місць у відділку)
     public Department getDepartment() {
         return department;
     }
 
-    // Геттер для лікаря (потрібен для відображення в таблиці та звітів)
     public Doctor getAttendingDoctor() {
         return attendingDoctor;
     }
 
     public String getFullName() {
-        return lastName + " " + firstName.charAt(0) + "." + patronymic.charAt(0) + ".";
+        StringBuilder sb = new StringBuilder();
+        sb.append(lastName != null ? lastName : "");
+        if (firstName != null && !firstName.isEmpty()) {
+            sb.append(' ').append(firstName.charAt(0)).append('.');
+        }
+        if (patronymic != null && !patronymic.isEmpty()) {
+            sb.append(patronymic.charAt(0)).append('.');
+        }
+        return sb.toString();
     }
 
     public String getDiagnosis() {
@@ -56,17 +60,14 @@ public class Patient {
         return dischargeDate != null;
     }
 
-    // Сеттер для дати виписки (використовується при виписці пацієнта)
     public void setDischargeDate(LocalDate dischargeDate) {
         this.dischargeDate = dischargeDate;
     }
 
-    // Опціонально: Сеттер для зміни лікаря
     public void setAttendingDoctor(Doctor attendingDoctor) {
         this.attendingDoctor = attendingDoctor;
     }
 
-    // Опціонально: Сеттер для переведення пацієнта (потрібно також оновити відділок у service.HospitalManagement!)
     public void setDepartment(Department department) {
         this.department = department;
     }

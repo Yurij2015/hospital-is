@@ -20,24 +20,19 @@ import java.util.List;
 
 public class PatientPanelForm extends JPanel {
 
-    // --- Компоненти ---
     private final JTable patientsTable;
     private final JTextField searchField;
 
-    // --- Поля даних ---
     private final HospitalManagement manager;
     private final PatientTableModel tableModel;
 
     public PatientPanelForm(HospitalManagement manager) {
         this.manager = manager;
 
-        // 1. Ініціалізація компонентів
         patientsTable = new JTable();
         JScrollPane tableScrollPane = new JScrollPane(patientsTable);
 
-        // Додати/Прийняти пацієнта
         JButton admitButton = new JButton("Прийняти Пацієнта");
-        // Виписати пацієнта
         JButton dischargeButton = new JButton("Виписати");
         JButton editButton = new JButton("Редагувати");
         JButton importButton = new JButton("Імпорт з CSV");
@@ -45,16 +40,13 @@ public class PatientPanelForm extends JPanel {
         searchField = new JTextField(20);
         JButton searchButton = new JButton("Пошук");
 
-        // 2. Налаштування компонування
         this.setLayout(new BorderLayout(5, 5));
 
-        // Панель для пошуку (NORTH)
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchPanel.add(new JLabel("Пошук (ПІБ, Діагноз):"));
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
-        // Панель для основних кнопок (SOUTH)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(admitButton);
         buttonPanel.add(dischargeButton);
@@ -62,20 +54,16 @@ public class PatientPanelForm extends JPanel {
         buttonPanel.add(importButton);
         buttonPanel.add(exportButton);
 
-        // Розміщення на головній панелі
-        this.add(searchPanel, BorderLayout.NORTH); // Пошук зверху
-        this.add(tableScrollPane, BorderLayout.CENTER); // Таблиця по центру
-        this.add(buttonPanel, BorderLayout.SOUTH);      // Кнопки знизу
+        this.add(searchPanel, BorderLayout.NORTH);
+        this.add(tableScrollPane, BorderLayout.CENTER);
+        this.add(buttonPanel, BorderLayout.SOUTH);
 
-        // 3. Підключення даних та логіки
         tableModel = new PatientTableModel(manager.getPatients());
         patientsTable.setModel(tableModel);
 
-        // Додамо сортер, щоб можна було сортувати/фільтрувати в майбутньому
         TableRowSorter<PatientTableModel> sorter = new TableRowSorter<>(tableModel);
         patientsTable.setRowSorter(sorter);
 
-        // Додавання обробників
         admitButton.addActionListener(e -> admitNewPatient());
         dischargeButton.addActionListener(e -> dischargePatient());
         searchButton.addActionListener(e -> searchPatients());
@@ -90,7 +78,6 @@ public class PatientPanelForm extends JPanel {
         tableModel.setData(manager.getPatients());
     }
 
-    // Export visible patients (from tableModel) to CSV
     private void exportPatientsToCsv() {
         List<Patient> rows = tableModel.getPatients();
         if (rows == null || rows.isEmpty()) {
@@ -111,7 +98,6 @@ public class PatientPanelForm extends JPanel {
         }
 
         try (FileWriter fw = new FileWriter(file)) {
-            // header
             fw.write(escapeCsvRow(new String[]{"Пацієнт", "Діагноз", "Відділок", "Лікар", "Дата прийому", "Дата виписки"}));
             fw.write(System.lineSeparator());
             for (Patient p : rows) {
@@ -149,7 +135,6 @@ public class PatientPanelForm extends JPanel {
     }
 
     private void admitNewPatient() {
-        // Простий діалог для додавання пацієнта: ПІБ і діагноз, обираємо відділок і лікаря за індексом
         JTextField lastNameField = new JTextField();
         JTextField firstNameField = new JTextField();
         JTextField patronymicField = new JTextField();
@@ -239,7 +224,6 @@ public class PatientPanelForm extends JPanel {
         int modelRow = patientsTable.convertRowIndexToModel(viewRow);
         Patient pat = tableModel.getPatients().get(modelRow);
 
-        // Дозволимо змінити лише лікуючого лікаря для простоти
         List<Doctor> docs = manager.getDoctors();
         String[] docNames = docs.stream().map(Doctor::getFullName).toArray(String[]::new);
         JComboBox<String> docCombo = new JComboBox<>(docNames);
@@ -257,7 +241,6 @@ public class PatientPanelForm extends JPanel {
         }
     }
 
-    // Import patients from CSV. Expected columns: lastName,firstName,patronymic,diagnosis,departmentName,doctorFullName
     private void importPatientsFromCsv() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Імпорт пацієнтів з CSV");

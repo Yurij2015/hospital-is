@@ -11,7 +11,6 @@ public class Doctor {
     private String position;
     private String specialization;
     private String phoneNumber;
-    // Відділки, за якими закріплений лікар
     private final List<Department> affiliatedDepartments;
 
     public Doctor(String lastName, String firstName, String patronymic, int birthYear,
@@ -26,7 +25,6 @@ public class Doctor {
         this.affiliatedDepartments = new ArrayList<>();
     }
 
-    // --- Getters and Setters ---
     public String getFullName() {
         StringBuilder sb = new StringBuilder();
         sb.append(lastName != null ? lastName : "");
@@ -81,7 +79,6 @@ public class Doctor {
         affiliatedDepartments.remove(department);
     }
 
-    // ... інші геттери та сеттери (для року народження, посади, фаху тощо)
 
     @Override
     public String toString() {

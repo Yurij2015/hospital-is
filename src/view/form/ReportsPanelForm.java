@@ -27,7 +27,6 @@ public class ReportsPanelForm extends JPanel {
 
         setLayout(new BorderLayout(8, 8));
 
-        // Top controls
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         reportTypeCombo = new JComboBox<>(new String[]{"Завантаженість відділків", "Кількість пацієнтів на лікаря", "Список виписаних пацієнтів"});
         JButton generateButton = new JButton("Генерувати");
@@ -39,14 +38,12 @@ public class ReportsPanelForm extends JPanel {
 
         add(top, BorderLayout.NORTH);
 
-        // Output area
         outputArea = new JTextArea();
         outputArea.setEditable(false);
         outputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         JScrollPane scroll = new JScrollPane(outputArea);
         add(scroll, BorderLayout.CENTER);
 
-        // Handlers
         generateButton.addActionListener(e -> generateSelectedReport());
         exportButton.addActionListener(e -> exportCurrentReport());
     }
@@ -102,7 +99,6 @@ public class ReportsPanelForm extends JPanel {
         outputArea.setText(sb.toString());
     }
 
-    // Export currently selected report to CSV
     private void exportCurrentReport() {
         String selection = (String) reportTypeCombo.getSelectedItem();
         if (selection == null) {

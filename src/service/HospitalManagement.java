@@ -14,7 +14,6 @@ public class HospitalManagement {
     private final List<Doctor> doctors;
     private final List<Patient> patients;
 
-    // Database helper (optional)
     private Database db;
 
     public HospitalManagement() {
@@ -22,11 +21,9 @@ public class HospitalManagement {
         this.doctors = new ArrayList<>();
         this.patients = new ArrayList<>();
 
-        // try to initialize DB and load saved data; if not present, populate demo data and save it
         try {
             db = new Database();
             if (db.hasAnyData()) {
-                // load from DB
                 List<Department> loadedDepts = db.loadDepartments();
                 departments.addAll(loadedDepts);
                 List<Doctor> loadedDocs = db.loadDoctors(departments);
@@ -35,18 +32,15 @@ public class HospitalManagement {
                 patients.addAll(loadedPats);
             } else {
                 addInitialData();
-                // persist initial data
                 saveAllToDatabase();
             }
         } catch (SQLException ex) {
-            // If DB initialization fails, fallback to in-memory demo data
             System.err.println("Warning: could not initialize database, running in-memory only: " + ex.getMessage());
             addInitialData();
         }
     }
 
     private void addInitialData() {
-        // Departments
         Department cardio = new Department("Кардіологія", 30);
         Department surgery = new Department("Хірургія", 50);
         Department neuro = new Department("Неврологія", 25);
@@ -61,7 +55,6 @@ public class HospitalManagement {
         departments.add(onco);
         departments.add(ortho);
 
-        // Doctors
         Doctor ivanov = new Doctor("Іванов", "Петро", "Сергійович", 1975,
                 "Завідувач", "Кардіолог", "050-111-22-33");
         ivanov.addDepartment(cardio);
@@ -92,7 +85,6 @@ public class HospitalManagement {
         melnyk.addDepartment(ortho);
         doctors.add(melnyk);
 
-        // Patients - admit several to populate tables
         Patient p1 = new Patient("Богданов", "Андрій", "Миколайович", 1990, "Інфаркт", cardio, ivanov);
         admitPatient(p1);
 
@@ -111,14 +103,11 @@ public class HospitalManagement {
         Patient p6 = new Patient("Ткач", "Наталя", "Василівна", 1983, "Остеоартрит", ortho, melnyk);
         admitPatient(p6);
 
-        // Add a discharged demo patient to show discharged list
         Patient discharged = new Patient("Романенко", "Віктор", "Сергійович", 1970, "Гострий бронхіт", pedi, shevchenko);
         admitPatient(discharged);
-        // Immediately discharge to appear in discharged reports
         dischargePatient(discharged);
     }
 
-    // Persist initial demo data to DB (if db is available)
     private void saveAllToDatabase() {
         if (db == null) return;
         try {
@@ -143,8 +132,8 @@ public class HospitalManagement {
             throw new IllegalArgumentException("Нова місткість (" + newCapacity +
                     ") менша за поточну зайнятість (" + dept.getCurrentOccupancy() + ").");
         }
-        dept.setName(newName); // Потребує set-метод у Department
-        dept.setMaxCapacity(newCapacity); // Потребує set-метод у Department
+        dept.setName(newName);
+        dept.setMaxCapacity(newCapacity);
         if (db != null) {
             try { db.saveDepartment(dept); } catch (SQLException ex) { System.err.println("DB update dept failed: " + ex.getMessage()); }
         }
@@ -156,10 +145,8 @@ public class HospitalManagement {
                     "', оскільки в ньому є " + dept.getCurrentOccupancy() + " пацієнтів.");
         }
         departments.remove(dept);
-        // Note: DB delete not implemented; could be added if desired
     }
 
-    // Методи для пацієнтів
     public void admitPatient(Patient patient) {
         if (patient.getDepartment().hasSpace()) {
             patients.add(patient);
@@ -174,13 +161,11 @@ public class HospitalManagement {
 
     public List<Patient> getPatients() { return patients; }
 
-    // Новий метод: виписка пацієнта
     public void dischargePatient(Patient patient) {
         if (patient == null) return;
         if (patient.isDischarged()) {
             throw new IllegalStateException("Пацієнт вже виписаний.");
         }
-        // Встановлюємо дату виписки та прибираємо з відділку
         patient.setDischargeDate(LocalDate.now());
         Department dept = patient.getDepartment();
         if (dept != null) {
@@ -191,7 +176,6 @@ public class HospitalManagement {
         }
     }
 
-    // Новий метод: пошук пацієнтів за рядком (ПІБ або діагноз)
     public List<Patient> searchPatients(String query) {
         List<Patient> result = new ArrayList<>();
         if (query == null || query.trim().isEmpty()) {
@@ -207,14 +191,12 @@ public class HospitalManagement {
         return result;
     }
 
-    // Методи для лікарів
     public void addDoctor(Doctor doctor) {
         doctors.add(doctor);
         if (db != null) { try { db.saveDoctor(doctor); } catch (SQLException ex) { System.err.println("DB save doctor failed: " + ex.getMessage()); } }
     }
     public List<Doctor> getDoctors() { return doctors; }
 
-    // Новий метод: оновлення даних лікаря
     public void updateDoctor(Doctor doctor, String newPosition, String newSpecialization, String newPhone) {
         if (doctor == null) return;
         doctor.setPosition(newPosition);
@@ -223,17 +205,13 @@ public class HospitalManagement {
         if (db != null) { try { db.saveDoctor(doctor); } catch (SQLException ex) { System.err.println("DB update doctor failed: " + ex.getMessage()); } }
     }
 
-    // Новий метод: видалення лікаря (перевіряємо, чи немає закріплених пацієнтів)
     public void removeDoctor(Doctor doctor) {
         if (doctor == null) return;
-        // Перевірка: чи є пацієнти, які мають цього лікаря
         for (Patient p : patients) {
             if (p.getAttendingDoctor() == doctor) {
                 throw new IllegalStateException("Не можна видалити лікаря, поки є пацієнти, закріплені за ним.");
             }
         }
-        // Якщо все ок — видаляємо
         doctors.remove(doctor);
-        // Note: DB delete not implemented here
     }
 }

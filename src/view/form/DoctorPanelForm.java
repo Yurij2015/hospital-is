@@ -3,7 +3,7 @@ package view.form;
 import service.HospitalManagement;
 import view.table.DoctorTableModel;
 import model.Doctor;
-import model.Department; // Потрібен для роботи з відділками
+import model.Department;
 
 import javax.swing.*;
 import javax.swing.table.TableRowSorter;
@@ -23,31 +23,24 @@ public class DoctorPanelForm extends JPanel {
     private JPanel panel1;
     private JTable table1;
 
-    // --- Поля контролера та моделі ---
     private final HospitalManagement manager;
     private final DoctorTableModel tableModel;
 
     public DoctorPanelForm(HospitalManagement manager) {
         this.manager = manager;
 
-        // 1. Ініціалізація компонентів
-        // --- Компоненти (Створюємо вручну) ---
         JTable doctorsTable = new JTable();
-        // Обов'язково обгортаємо JTable в JScrollPane
         JScrollPane tableScrollPane = new JScrollPane(doctorsTable);
 
         JButton addButton = new JButton("Додати Лікаря");
         JButton editButton = new JButton("Редагувати");
         JButton deleteButton = new JButton("Видалити");
-        // Кнопка для призначення відділків
         JButton assignDepartmentButton = new JButton("Призначити Відділок");
         JButton importButton = new JButton("Імпорт з CSV");
         JButton exportButton = new JButton("Експорт в CSV");
 
-        // 2. Налаштування компонування
-        this.setLayout(new BorderLayout(5, 5)); // Встановлення BorderLayout для JPanel
+        this.setLayout(new BorderLayout(5, 5));
 
-        // Панель для кнопок (SOUTH)
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(addButton);
@@ -57,19 +50,15 @@ public class DoctorPanelForm extends JPanel {
         buttonPanel.add(importButton);
         buttonPanel.add(exportButton);
 
-        // Додавання компонентів до головної панелі (this)
         this.add(tableScrollPane, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
 
-        // 3. Підключення даних
         tableModel = new DoctorTableModel(manager.getDoctors());
         doctorsTable.setModel(tableModel);
 
-        // Додамо сортер
         TableRowSorter<DoctorTableModel> sorter = new TableRowSorter<>(tableModel);
         doctorsTable.setRowSorter(sorter);
 
-        // 4. Додавання обробників подій
         addButton.addActionListener(e -> addNewDoctor());
         editButton.addActionListener(e -> editSelectedDoctor(doctorsTable));
         deleteButton.addActionListener(e -> deleteSelectedDoctor(doctorsTable));
@@ -84,12 +73,7 @@ public class DoctorPanelForm extends JPanel {
         tableModel.setData(manager.getDoctors());
     }
 
-    // =========================================================
-    // ЛОГІКА КНОПОК
-    // =========================================================
-
     private void addNewDoctor() {
-        // Простий діалог для введення лікаря (прізвище/ім'я/по-батькові/рік/посада/фах/телефон)
         JTextField lastNameField = new JTextField();
         JTextField firstNameField = new JTextField();
         JTextField patronymicField = new JTextField();
@@ -186,7 +170,6 @@ public class DoctorPanelForm extends JPanel {
             int idx = combo.getSelectedIndex();
             if (idx >= 0) {
                 Department d = depts.get(idx);
-                // Toggle assignment: якщо вже є - зняти, якщо немає - додати
                 if (doc.getAffiliatedDepartments().contains(d)) {
                     doc.removeDepartment(d);
                     JOptionPane.showMessageDialog(this, "Відділок знято.");
@@ -199,7 +182,6 @@ public class DoctorPanelForm extends JPanel {
         }
     }
 
-    // Import doctors from CSV. Expected columns: lastName,firstName,patronymic,birthYear,position,specialization,phone
     private void importDoctorsFromCsv() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Імпорт лікарів з CSV");
@@ -267,7 +249,6 @@ public class DoctorPanelForm extends JPanel {
         return out;
     }
 
-    // Export doctors to CSV
     private void exportDoctorsToCsv() {
         List<Doctor> docs = tableModel.getDoctors();
         if (docs == null || docs.isEmpty()) {

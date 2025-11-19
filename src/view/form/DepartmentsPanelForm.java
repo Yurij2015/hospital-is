@@ -64,7 +64,6 @@ public class DepartmentsPanelForm extends JPanel {
         tableModel.setData(manager.getDepartments());
     }
 
-    // Export departments to CSV (columns: Назва,Макс. Ліжок,Зайнято,% Зайнятості)
     private void exportDepartmentsToCsv() {
         List<Department> depts = tableModel.getDepartments();
         if (depts == null || depts.isEmpty()) {
@@ -185,7 +184,6 @@ public class DepartmentsPanelForm extends JPanel {
         }
     }
 
-    // Import departments from CSV file. Expected columns: name,capacity
     private void importDepartmentsFromCsv() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Імпорт відділок з CSV");
@@ -201,7 +199,6 @@ public class DepartmentsPanelForm extends JPanel {
             boolean first = true;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
-                // skip header if it looks like header
                 if (first) {
                     first = false;
                     if (line.toLowerCase().contains("відділок") || line.toLowerCase().contains("назва") || line.contains("Зайнято")) {
@@ -217,7 +214,6 @@ public class DepartmentsPanelForm extends JPanel {
                 String capStr = fields.get(1).trim();
                 try {
                     int cap = Integer.parseInt(capStr);
-                    // if department with same name exists, skip
                     boolean exists = manager.getDepartments().stream().anyMatch(d -> d.getName().equalsIgnoreCase(name));
                     if (exists) {
                         errors.add("Відділок вже існує: " + name);
@@ -245,7 +241,6 @@ public class DepartmentsPanelForm extends JPanel {
         JOptionPane.showMessageDialog(this, msg.toString(), "Імпорт завершено", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // Simple CSV parser handling quoted fields
     private List<String> parseCsvLine(String line) {
         List<String> out = new ArrayList<>();
         StringBuilder cur = new StringBuilder();
@@ -256,7 +251,7 @@ public class DepartmentsPanelForm extends JPanel {
                 if (c == '"') {
                     if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
                         cur.append('"');
-                        i++; // skip escaped quote
+                        i++;
                     } else {
                         inQuotes = false;
                     }
