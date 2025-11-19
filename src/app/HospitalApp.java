@@ -4,6 +4,7 @@ import service.HospitalManagement;
 import view.form.DepartmentsPanelForm;
 import view.form.PatientPanelForm;
 import view.form.DoctorPanelForm;
+import view.form.ReportsPanelForm;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -30,7 +31,8 @@ public class HospitalApp extends JFrame {
         PatientPanelForm patientPanel = new PatientPanelForm(manager);
         tabbedPane.addTab("Пацієнти", patientPanel);
 
-        tabbedPane.addTab("Звіти", createReportsPanel());
+        ReportsPanelForm reportsPanel = new ReportsPanelForm(manager);
+        tabbedPane.addTab("Звіти", reportsPanel);
 
         add(tabbedPane);
 
@@ -42,12 +44,6 @@ public class HospitalApp extends JFrame {
         });
     }
 
-    private JPanel createReportsPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel("Панель Звітів (Тут будуть звіти про завантаженість)", SwingConstants.CENTER);
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
