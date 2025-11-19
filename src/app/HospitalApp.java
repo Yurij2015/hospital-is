@@ -20,6 +20,19 @@ public class HospitalApp extends JFrame {
         setSize(1000, 600);
         setLocationRelativeTo(null);
 
+        JTabbedPane tabbedPane = getJTabbedPane(manager);
+
+        add(tabbedPane);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.out.println("Збереження даних...");
+            }
+        });
+    }
+
+    private static JTabbedPane getJTabbedPane(HospitalManagement manager) {
         JTabbedPane tabbedPane = new JTabbedPane();
 
         DepartmentsPanelForm departmentsPanel = new DepartmentsPanelForm(manager);
@@ -33,15 +46,7 @@ public class HospitalApp extends JFrame {
 
         ReportsPanelForm reportsPanel = new ReportsPanelForm(manager);
         tabbedPane.addTab("Звіти", reportsPanel);
-
-        add(tabbedPane);
-
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                System.out.println("Збереження даних...");
-            }
-        });
+        return tabbedPane;
     }
 
 
