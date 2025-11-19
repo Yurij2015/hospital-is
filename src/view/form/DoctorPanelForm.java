@@ -12,9 +12,11 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DoctorPanelForm extends JPanel {
 
@@ -40,6 +42,7 @@ public class DoctorPanelForm extends JPanel {
         // Кнопка для призначення відділків
         JButton assignDepartmentButton = new JButton("Призначити Відділок");
         JButton importButton = new JButton("Імпорт з CSV");
+        JButton exportButton = new JButton("Експорт в CSV");
 
         // 2. Налаштування компонування
         this.setLayout(new BorderLayout(5, 5)); // Встановлення BorderLayout для JPanel
@@ -52,6 +55,7 @@ public class DoctorPanelForm extends JPanel {
         buttonPanel.add(deleteButton);
         buttonPanel.add(assignDepartmentButton);
         buttonPanel.add(importButton);
+        buttonPanel.add(exportButton);
 
         // Додавання компонентів до головної панелі (this)
         this.add(tableScrollPane, BorderLayout.CENTER);
@@ -71,6 +75,7 @@ public class DoctorPanelForm extends JPanel {
         deleteButton.addActionListener(e -> deleteSelectedDoctor(doctorsTable));
         assignDepartmentButton.addActionListener(e -> assignDepartment(doctorsTable));
         importButton.addActionListener(e -> importDoctorsFromCsv());
+        exportButton.addActionListener(e -> exportDoctorsToCsv());
 
         refreshTableData();
     }
@@ -260,5 +265,57 @@ public class DoctorPanelForm extends JPanel {
         }
         out.add(cur.toString());
         return out;
+    }
+
+    // Export doctors to CSV
+    private void exportDoctorsToCsv() {
+        List<Doctor> docs = tableModel.getDoctors();
+        if (docs == null || docs.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Немає даних для експорту.", "Інформація", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Зберегти лікарів як CSV");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        int rc = chooser.showSaveDialog(this);
+        if (rc != JFileChooser.APPROVE_OPTION) return;
+        File file = chooser.getSelectedFile();
+        if (!file.getName().toLowerCase().endsWith(".csv")) file = new File(file.getParentFile(), file.getName() + ".csv");
+        if (file.exists()) {
+            int resp = JOptionPane.showConfirmDialog(this, "Файл вже існує. Перезаписати?", "Підтвердження", JOptionPane.YES_NO_OPTION);
+            if (resp != JOptionPane.YES_OPTION) return;
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.write(escapeCsvRow(new String[]{"ПІБ", "Рік нар.", "Посада", "Фах", "Телефон", "Відділки"}));
+            fw.write(System.lineSeparator());
+            for (Doctor d : docs) {
+                String aff = d.getAffiliatedDepartments().stream().map(Department::getName).collect(Collectors.joining(", "));
+                fw.write(escapeCsvRow(new String[]{d.getFullName(), String.valueOf(d.getBirthYear()), d.getPosition(), d.getSpecialization(), d.getPhoneNumber(), aff}));
+                fw.write(System.lineSeparator());
+            }
+            fw.flush();
+            JOptionPane.showMessageDialog(this, "Експорт завершено: " + file.getAbsolutePath(), "Успіх", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Помилка запису файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String escapeCsvRow(String[] row) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.length; i++) {
+            if (i > 0) sb.append(',');
+            sb.append(escapeCsvField(row[i]));
+        }
+        return sb.toString();
+    }
+
+    private String escapeCsvField(String field) {
+        if (field == null) return "";
+        boolean mustQuote = field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r");
+        String escaped = field.replace("\"", "\"\"");
+        if (mustQuote) return '"' + escaped + '"';
+        return escaped;
     }
 }

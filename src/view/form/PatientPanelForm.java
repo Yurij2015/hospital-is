@@ -13,6 +13,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class PatientPanelForm extends JPanel {
         JButton dischargeButton = new JButton("Виписати");
         JButton editButton = new JButton("Редагувати");
         JButton importButton = new JButton("Імпорт з CSV");
+        JButton exportButton = new JButton("Експорт в CSV");
         searchField = new JTextField(20);
         JButton searchButton = new JButton("Пошук");
 
@@ -58,6 +60,7 @@ public class PatientPanelForm extends JPanel {
         buttonPanel.add(dischargeButton);
         buttonPanel.add(editButton);
         buttonPanel.add(importButton);
+        buttonPanel.add(exportButton);
 
         // Розміщення на головній панелі
         this.add(searchPanel, BorderLayout.NORTH); // Пошук зверху
@@ -78,12 +81,71 @@ public class PatientPanelForm extends JPanel {
         searchButton.addActionListener(e -> searchPatients());
         editButton.addActionListener(e -> editPatient());
         importButton.addActionListener(e -> importPatientsFromCsv());
+        exportButton.addActionListener(e -> exportPatientsToCsv());
 
         refreshTableData();
     }
 
     public void refreshTableData() {
         tableModel.setData(manager.getPatients());
+    }
+
+    // Export visible patients (from tableModel) to CSV
+    private void exportPatientsToCsv() {
+        List<Patient> rows = tableModel.getPatients();
+        if (rows == null || rows.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Немає даних для експорту.", "Інформація", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Зберегти пацієнтів як CSV");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        int rc = chooser.showSaveDialog(this);
+        if (rc != JFileChooser.APPROVE_OPTION) return;
+        File file = chooser.getSelectedFile();
+        if (!file.getName().toLowerCase().endsWith(".csv")) file = new File(file.getParentFile(), file.getName() + ".csv");
+        if (file.exists()) {
+            int resp = JOptionPane.showConfirmDialog(this, "Файл уже існує. Перезаписати?", "Підтвердження", JOptionPane.YES_NO_OPTION);
+            if (resp != JOptionPane.YES_OPTION) return;
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
+            // header
+            fw.write(escapeCsvRow(new String[]{"Пацієнт", "Діагноз", "Відділок", "Лікар", "Дата прийому", "Дата виписки"}));
+            fw.write(System.lineSeparator());
+            for (Patient p : rows) {
+                String name = p.getFullName();
+                String diag = p.getDiagnosis();
+                String dept = p.getDepartment() != null ? p.getDepartment().getName() : "Н/Д";
+                String doc = p.getAttendingDoctor() != null ? p.getAttendingDoctor().getFullName() : "Н/Д";
+                String adm = p.getAdmissionDate() != null ? p.getAdmissionDate().toString() : "";
+                String dis = p.getDischargeDate() != null ? p.getDischargeDate().toString() : "";
+                fw.write(escapeCsvRow(new String[]{name, diag, dept, doc, adm, dis}));
+                fw.write(System.lineSeparator());
+            }
+            fw.flush();
+            JOptionPane.showMessageDialog(this, "Експорт завершено: " + file.getAbsolutePath(), "Успіх", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Помилка запису файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String escapeCsvRow(String[] row) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.length; i++) {
+            if (i > 0) sb.append(',');
+            sb.append(escapeCsvField(row[i]));
+        }
+        return sb.toString();
+    }
+
+    private String escapeCsvField(String field) {
+        if (field == null) return "";
+        boolean mustQuote = field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r");
+        String escaped = field.replace("\"", "\"\"");
+        if (mustQuote) return '"' + escaped + '"';
+        return escaped;
     }
 
     private void admitNewPatient() {

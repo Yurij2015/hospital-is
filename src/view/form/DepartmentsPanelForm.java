@@ -10,6 +10,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class DepartmentsPanelForm extends JPanel {
         JButton editButton = new JButton("Редагувати");
         JButton deleteButton = new JButton("Видалити");
         JButton importButton = new JButton("Імпорт з CSV");
+        JButton exportButton = new JButton("Експорт в CSV");
 
         this.setLayout(new BorderLayout());
 
@@ -41,6 +43,7 @@ public class DepartmentsPanelForm extends JPanel {
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(importButton);
+        buttonPanel.add(exportButton);
 
         this.add(tableScrollPane, BorderLayout.CENTER);
         this.add(buttonPanel, BorderLayout.SOUTH);
@@ -52,12 +55,65 @@ public class DepartmentsPanelForm extends JPanel {
         editButton.addActionListener(e -> editSelectedDepartment());
         deleteButton.addActionListener(e -> deleteSelectedDepartment());
         importButton.addActionListener(e -> importDepartmentsFromCsv());
+        exportButton.addActionListener(e -> exportDepartmentsToCsv());
 
         refreshTableData();
     }
 
     public void refreshTableData() {
         tableModel.setData(manager.getDepartments());
+    }
+
+    // Export departments to CSV (columns: Назва,Макс. Ліжок,Зайнято,% Зайнятості)
+    private void exportDepartmentsToCsv() {
+        List<Department> depts = tableModel.getDepartments();
+        if (depts == null || depts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Немає даних для експорту.", "Інформація", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Зберегти відділки як CSV");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        int rc = chooser.showSaveDialog(this);
+        if (rc != JFileChooser.APPROVE_OPTION) return;
+        File file = chooser.getSelectedFile();
+        if (!file.getName().toLowerCase().endsWith(".csv")) file = new File(file.getParentFile(), file.getName() + ".csv");
+        if (file.exists()) {
+            int resp = JOptionPane.showConfirmDialog(this, "Файл уже існує. Перезаписати?", "Підтвердження", JOptionPane.YES_NO_OPTION);
+            if (resp != JOptionPane.YES_OPTION) return;
+        }
+
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.write(escapeCsvRow(new String[]{"Назва", "Макс. Ліжок", "Зайнято", "% Зайнятості"}));
+            fw.write(System.lineSeparator());
+            for (Department d : depts) {
+                String pct = d.getMaxCapacity() > 0 ? String.format("%.1f%%", (double) d.getCurrentOccupancy() / d.getMaxCapacity() * 100) : "0.0%";
+                fw.write(escapeCsvRow(new String[]{d.getName(), String.valueOf(d.getMaxCapacity()), String.valueOf(d.getCurrentOccupancy()), pct}));
+                fw.write(System.lineSeparator());
+            }
+            fw.flush();
+            JOptionPane.showMessageDialog(this, "Експорт завершено: " + file.getAbsolutePath(), "Успіх", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Помилка запису файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String escapeCsvRow(String[] row) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < row.length; i++) {
+            if (i > 0) sb.append(',');
+            sb.append(escapeCsvField(row[i]));
+        }
+        return sb.toString();
+    }
+
+    private String escapeCsvField(String field) {
+        if (field == null) return "";
+        boolean mustQuote = field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r");
+        String escaped = field.replace("\"", "\"\"");
+        if (mustQuote) return '"' + escaped + '"';
+        return escaped;
     }
 
     private void addNewDepartment() {
