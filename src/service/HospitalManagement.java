@@ -21,15 +21,76 @@ public class HospitalManagement {
     }
 
     private void addInitialData() {
+        // Departments
         Department cardio = new Department("Кардіологія", 30);
         Department surgery = new Department("Хірургія", 50);
+        Department neuro = new Department("Неврологія", 25);
+        Department pedi = new Department("Педіатрія", 40);
+        Department onco = new Department("Онкологія", 20);
+        Department ortho = new Department("Ортопедія", 30);
+
         departments.add(cardio);
         departments.add(surgery);
+        departments.add(neuro);
+        departments.add(pedi);
+        departments.add(onco);
+        departments.add(ortho);
 
+        // Doctors
         Doctor ivanov = new Doctor("Іванов", "Петро", "Сергійович", 1975,
                 "Завідувач", "Кардіолог", "050-111-22-33");
         ivanov.addDepartment(cardio);
         doctors.add(ivanov);
+
+        Doctor petrenko = new Doctor("Петренко", "Олексій", "Іванович", 1980,
+                "Лікар", "Невролог", "050-222-33-44");
+        petrenko.addDepartment(neuro);
+        doctors.add(petrenko);
+
+        Doctor shevchenko = new Doctor("Шевченко", "Марія", "Петрівна", 1985,
+                "Лікар", "Педіатр", "050-333-44-55");
+        shevchenko.addDepartment(pedi);
+        doctors.add(shevchenko);
+
+        Doctor kovalenko = new Doctor("Коваленко", "Ігор", "Володимирович", 1978,
+                "Лікар", "Хірург", "050-444-55-66");
+        kovalenko.addDepartment(surgery);
+        doctors.add(kovalenko);
+
+        Doctor bondar = new Doctor("Бондар", "Тарас", "Олександрович", 1982,
+                "Лікар", "Онколог", "050-555-66-77");
+        bondar.addDepartment(onco);
+        doctors.add(bondar);
+
+        Doctor melnyk = new Doctor("Мельник", "Оксана", "Ігорівна", 1990,
+                "Лікар", "Ортопед", "050-666-77-88");
+        melnyk.addDepartment(ortho);
+        doctors.add(melnyk);
+
+        // Patients - admit several to populate tables
+        Patient p1 = new Patient("Богданов", "Андрій", "Миколайович", 1990, "Інфаркт", cardio, ivanov);
+        admitPatient(p1);
+
+        Patient p2 = new Patient("Коваль", "Світлана", "Петрівна", 1988, "Кардіоміопатія", cardio, ivanov);
+        admitPatient(p2);
+
+        Patient p3 = new Patient("Гнатенко", "Олег", "Іванович", 1972, "Післяопераційний стан", surgery, kovalenko);
+        admitPatient(p3);
+
+        Patient p4 = new Patient("Лисенко", "Ольга", "Петрівна", 1992, "Пневмонія", pedi, shevchenko);
+        admitPatient(p4);
+
+        Patient p5 = new Patient("Кравчук", "Іван", "Петрович", 1965, "Інсульт", neuro, petrenko);
+        admitPatient(p5);
+
+        Patient p6 = new Patient("Ткач", "Наталя", "Василівна", 1983, "Остеоартрит", ortho, melnyk);
+        admitPatient(p6);
+
+        // Add a discharged demo patient to show discharged list
+        Patient discharged = new Patient("Романенко", "Віктор", "Сергійович", 1970, "Гострий бронхіт", pedi, shevchenko);
+        admitPatient(discharged);
+        // Immediately discharge to appear in discharged reports
+        dischargePatient(discharged);
     }
 
     public void addDepartment(Department dept) { departments.add(dept); }
