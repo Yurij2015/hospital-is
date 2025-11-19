@@ -8,7 +8,13 @@ import model.Doctor;
 
 import javax.swing.*;
 import javax.swing.table.TableRowSorter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PatientPanelForm extends JPanel {
@@ -33,6 +39,7 @@ public class PatientPanelForm extends JPanel {
         // Виписати пацієнта
         JButton dischargeButton = new JButton("Виписати");
         JButton editButton = new JButton("Редагувати");
+        JButton importButton = new JButton("Імпорт з CSV");
         searchField = new JTextField(20);
         JButton searchButton = new JButton("Пошук");
 
@@ -50,6 +57,7 @@ public class PatientPanelForm extends JPanel {
         buttonPanel.add(admitButton);
         buttonPanel.add(dischargeButton);
         buttonPanel.add(editButton);
+        buttonPanel.add(importButton);
 
         // Розміщення на головній панелі
         this.add(searchPanel, BorderLayout.NORTH); // Пошук зверху
@@ -69,6 +77,7 @@ public class PatientPanelForm extends JPanel {
         dischargeButton.addActionListener(e -> dischargePatient());
         searchButton.addActionListener(e -> searchPatients());
         editButton.addActionListener(e -> editPatient());
+        importButton.addActionListener(e -> importPatientsFromCsv());
 
         refreshTableData();
     }
@@ -184,5 +193,73 @@ public class PatientPanelForm extends JPanel {
                 refreshTableData();
             }
         }
+    }
+
+    // Import patients from CSV. Expected columns: lastName,firstName,patronymic,diagnosis,departmentName,doctorFullName
+    private void importPatientsFromCsv() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Імпорт пацієнтів з CSV");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        int res = chooser.showOpenDialog(this);
+        if (res != JFileChooser.APPROVE_OPTION) return;
+        File file = chooser.getSelectedFile();
+
+        List<String> errors = new ArrayList<>();
+        int added = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                if (first) { first = false; if (line.toLowerCase().contains("прізвище") || line.toLowerCase().contains("last")) continue; }
+                List<String> fields = parseCsvLine(line);
+                if (fields.size() < 6) { errors.add("Неправильний рядок: " + line); continue; }
+                String ln = fields.get(0).trim();
+                String fn = fields.get(1).trim();
+                String pat = fields.get(2).trim();
+                String diag = fields.get(3).trim();
+                String deptName = fields.get(4).trim();
+                String docName = fields.get(5).trim();
+
+                Department dept = manager.getDepartments().stream().filter(d -> d.getName().equalsIgnoreCase(deptName)).findFirst().orElse(null);
+                Doctor doc = manager.getDoctors().stream().filter(dd -> dd.getFullName().equalsIgnoreCase(docName)).findFirst().orElse(null);
+                if (dept == null) { errors.add("Відділок не знайдено: " + deptName + " для рядка: " + line); continue; }
+                if (doc == null) { errors.add("Лікаря не знайдено: " + docName + " для рядка: " + line); continue; }
+                Patient p = new Patient(ln, fn, pat, 0, diag, dept, doc);
+                try {
+                    manager.admitPatient(p);
+                    added++;
+                } catch (Exception ex) {
+                    errors.add("Не вдалося додати: " + ln + " - " + ex.getMessage());
+                }
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Помилка читання файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        refreshTableData();
+        StringBuilder msg = new StringBuilder();
+        msg.append("Додано пацієнтів: ").append(added).append("\n");
+        if (!errors.isEmpty()) { msg.append("Помилки:\n"); for (String er : errors) msg.append(er).append("\n"); }
+        JOptionPane.showMessageDialog(this, msg.toString(), "Імпорт завершено", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private List<String> parseCsvLine(String line) {
+        List<String> out = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') { cur.append('"'); i++; } else { inQuotes = false; }
+                } else { cur.append(c); }
+            } else {
+                if (c == '"') { inQuotes = true; } else if (c == ',') { out.add(cur.toString()); cur.setLength(0); } else { cur.append(c); }
+            }
+        }
+        out.add(cur.toString());
+        return out;
     }
 }

@@ -20,8 +20,6 @@ public class ReportsPanelForm extends JPanel {
 
     private final HospitalManagement manager;
     private final JComboBox<String> reportTypeCombo;
-    private final JButton generateButton;
-    private final JButton exportButton;
     private final JTextArea outputArea;
 
     public ReportsPanelForm(HospitalManagement manager) {
@@ -32,8 +30,8 @@ public class ReportsPanelForm extends JPanel {
         // Top controls
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         reportTypeCombo = new JComboBox<>(new String[]{"Завантаженість відділків", "Кількість пацієнтів на лікаря", "Список виписаних пацієнтів"});
-        generateButton = new JButton("Генерувати");
-        exportButton = new JButton("Експорт в CSV");
+        JButton generateButton = new JButton("Генерувати");
+        JButton exportButton = new JButton("Експорт в CSV");
         top.add(new JLabel("Тип звіту:"));
         top.add(reportTypeCombo);
         top.add(generateButton);
@@ -92,7 +90,7 @@ public class ReportsPanelForm extends JPanel {
     }
 
     private void showDischargedPatients() {
-        List<Patient> list = manager.getPatients().stream().filter(Patient::isDischarged).collect(Collectors.toList());
+        List<Patient> list = manager.getPatients().stream().filter(Patient::isDischarged).toList();
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("%-30s %-20s %-12s\n", "Пацієнт", "Відділок", "Дата виписки"));
         sb.append("---------------------------------------------------------------\n");
